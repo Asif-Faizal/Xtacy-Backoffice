@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"xtacy-backoffice","appId":"1:521441459528:android:240a4ff2022650fc7ac77d","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"xtacy-backoffice","appId":"1:521441459528:ios:f01945386943db657ac77d","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"xtacy-backoffice","configurations":{"android":"1:521441459528:android:240a4ff2022650fc7ac77d","ios":"1:521441459528:ios:f01945386943db657ac77d"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "xtacy-backoffice",
+          "appId": "1:521441459528:android:240a4ff2022650fc7ac77d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "xtacy-backoffice",
+          "appId": "1:521441459528:ios:f01945386943db657ac77d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "xtacy-backoffice",
+          "configurations": {
+            "android": "1:521441459528:android:240a4ff2022650fc7ac77d",
+            "ios": "1:521441459528:ios:f01945386943db657ac77d"
+          }
+        }
+      }
+    }
+  }
+}
