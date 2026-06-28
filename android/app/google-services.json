@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "521441459528",
+    "project_id": "xtacy-backoffice",
+    "storage_bucket": "xtacy-backoffice.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521441459528:android:240a4ff2022650fc7ac77d",
+        "android_client_info": {
+          "package_name": "com.example.xtacy_backoffice"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkXLJ27S30cOmU2lK8AkhJqYuqsqNQEcc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
