@@ -24,7 +24,7 @@ class HiveService {
 
   Future<void> cacheProducts(List<ProductModel> products) async {
     try {
-      final jsonList = products.map((p) => p.toJson()).toList();
+      final jsonList = products.map((p) => p.toCacheJson()).toList();
       await box.put(AppConstants.hiveProductsKey, jsonList);
     } catch (e) {
       throw CacheFailure(e.toString());

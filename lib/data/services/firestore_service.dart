@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:xtacy_backoffice/core/constants/app_constants.dart';
 import 'package:xtacy_backoffice/core/constants/category_constants.dart';
 import 'package:xtacy_backoffice/core/errors/failures.dart';
@@ -20,7 +22,21 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _productsRef =>
       _firestore.collection(AppConstants.productsCollection);
 
-  Future<void> enableOfflinePersistence() async {
+  /// Waits for Firebase Auth token before Firestore reads (avoids race after sign-in).
+  Future<void> _ensureAuthReady() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.getIdToken();
+    }
+  }
+
+  ProductModel? _parseProductDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+    try {
+      return ProductModel.fromFirestore(doc);
+    } catch (e, stack) {
+      debugPrint('Skipping invalid product ${doc.id}: $e\n$stack');
+      return null;
+    }
   }
 
   Future<void> saveUser({
@@ -79,17 +95,30 @@ class FirestoreService {
 
   Future<List<ProductModel>> getAllProducts() async {
     try {
+      await _ensureAuthReady();
       final snapshot = await _productsRef
           .orderBy('createdAt', descending: true)
           .get();
-      final products =
-          snapshot.docs.map(ProductModel.fromFirestore).toList();
-      await _hiveService.cacheProducts(products);
+      final products = snapshot.docs
+          .map(_parseProductDoc)
+          .whereType<ProductModel>()
+          .toList();
+      try {
+        await _hiveService.cacheProducts(products);
+      } catch (e) {
+        debugPrint('Hive cache write failed (non-fatal): $e');
+      }
       return products;
     } on FirebaseException catch (e) {
+      debugPrint('Firestore getAllProducts failed: ${e.code} ${e.message}');
       final cached = _hiveService.getCachedProducts();
       if (cached.isNotEmpty) return cached;
       throw ServerFailure(e.message ?? 'Failed to fetch products');
+    } catch (e) {
+      debugPrint('getAllProducts unexpected error: $e');
+      final cached = _hiveService.getCachedProducts();
+      if (cached.isNotEmpty) return cached;
+      throw ServerFailure(e.toString());
     }
   }
 

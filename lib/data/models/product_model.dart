@@ -184,10 +184,29 @@ class ProductModel extends Equatable {
     return ProductModel.fromJson({...data, 'id': doc.id});
   }
 
+  /// JSON safe for Hive cache (ISO strings instead of Firestore Timestamps).
+  Map<String, dynamic> toCacheJson() {
+    final json = Map<String, dynamic>.from(toJson());
+    for (final field in ['createdAt', 'updatedAt', 'purchaseDate', 'soldDate']) {
+      final value = json[field];
+      if (value != null) {
+        json[field] = _parseDate(value).toIso8601String();
+      }
+    }
+    return json;
+  }
+
   static DateTime _parseDate(dynamic value) {
     if (value is Timestamp) return value.toDate();
     if (value is DateTime) return value;
     if (value is String) return DateTime.parse(value);
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is Map) {
+      final seconds = value['seconds'] ?? value['_seconds'];
+      if (seconds is num) {
+        return DateTime.fromMillisecondsSinceEpoch(seconds.toInt() * 1000);
+      }
+    }
     throw FormatException('Invalid date value: $value');
   }
 

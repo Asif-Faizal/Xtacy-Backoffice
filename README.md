@@ -1,13 +1,17 @@
 # Xtacy Backoffice
 
-Production-ready Flutter inventory and sales management app for a single retail clothing outlet. Multiple authenticated staff users share one common inventory backed by Firebase.
+Production-ready Flutter inventory and sales management app for a single retail clothing outlet. Multiple authenticated staff users share one common inventory.
+
+**Backend split (Spark-friendly):**
+- **Firebase (Spark / free)** — Google Sign-In, Firestore database
+- **Supabase (free tier)** — Product image storage (no Blaze plan, no prepayment)
 
 ## Features
 
 - Google Sign-In authentication
 - Product inventory management (add, edit, delete, mark sold)
 - Auto-generated product codes (`XT000001`, `XT000002`, …)
-- Image upload to Firebase Storage with compression
+- Image upload to **Supabase Storage** with compression
 - Dashboard analytics with charts and category summaries
 - Inventory tabs: All, Unsold, Sold, Upper Wear, Lower Wear, Accessories
 - Search and filters (category, sold status, date range, price range, sort)
@@ -19,27 +23,29 @@ Production-ready Flutter inventory and sales management app for a single retail 
 ## Tech Stack
 
 - Flutter (latest stable)
-- Firebase Auth, Cloud Firestore, Firebase Storage
+- Firebase Auth + Cloud Firestore (Spark plan)
+- Supabase Storage (free tier — 1 GB)
 - Bloc (`flutter_bloc`) + Clean Architecture + Repository Pattern
 - GoRouter, Hive, Cached Network Image, Image Picker, fl_chart, Intl, UUID
 
 ## Prerequisites
 
 - Flutter SDK 3.12+ ([install guide](https://docs.flutter.dev/get-started/install))
-- Firebase project: `xtacy-backoffice`
+- Firebase project: `xtacy-backoffice` (Spark plan is enough)
+- Supabase account ([supabase.com](https://supabase.com) — free, no card required)
 - Google Sign-In enabled in Firebase Authentication
 - Android Studio / Xcode for device builds
 
 ## Setup
 
-### 1. Clone and install dependencies
+### 1. Install dependencies
 
 ```bash
 cd xtacy_backoffice
 flutter pub get
 ```
 
-### 2. Firebase configuration
+### 2. Firebase (Auth + Firestore)
 
 Firebase is already configured via `flutterfire configure`. If you need to reconfigure:
 
@@ -48,33 +54,58 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 flutterfire configure
 ```
 
-### 3. Enable Google Sign-In
+**Enable Google Sign-In:**
 
-1. Open [Firebase Console](https://console.firebase.google.com/) → **xtacy-backoffice**
-2. Go to **Authentication** → **Sign-in method** → enable **Google**
-3. For iOS: download an updated `GoogleService-Info.plist` (must include `CLIENT_ID`)
-4. For Android: ensure SHA-1 fingerprint is added in Firebase project settings
+1. [Firebase Console](https://console.firebase.google.com/) → **xtacy-backoffice**
+2. **Authentication** → **Sign-in method** → enable **Google**
+3. iOS: download updated `GoogleService-Info.plist` (must include `CLIENT_ID`)
+4. Android: add SHA-1 fingerprint in Firebase project settings
 
-### 4. Deploy security rules
+**Deploy Firestore rules only** (no Firebase Storage / Blaze needed):
 
 ```bash
-firebase deploy --only firestore:rules,storage:rules
+firebase deploy --only firestore:rules --project xtacy-backoffice
 ```
 
-Or copy `firestore.rules` and `storage.rules` into the Firebase Console.
+### 3. Supabase (product images — free)
 
-### 5. Run the app
+1. Create a project at [supabase.com](https://supabase.com) (free tier, no payment required)
+2. Open **Project Settings** → **API** and copy:
+   - **Project URL**
+   - **anon public** key
+3. Paste them in `lib/core/constants/supabase_constants.dart`:
+
+```dart
+static const String url = 'https://YOUR_PROJECT.supabase.co';
+static const String anonKey = 'YOUR_ANON_KEY';
+```
+
+4. Open **SQL Editor** in Supabase and run the contents of `supabase/storage_setup.sql`
+   - Or manually: **Storage** → **New bucket** → name `products` → enable **Public bucket**
+5. Free tier includes **1 GB** storage — enough for hundreds of compressed product photos
+
+### 4. Run the app
 
 ```bash
 flutter run
 ```
+
+## Why Supabase instead of Firebase Storage?
+
+Firebase Storage now requires the **Blaze (pay-as-you-go)** plan with a billing account. Supabase free tier provides **1 GB storage** with **no card or prepayment** — ideal for a small store on Firebase Spark.
+
+| Service | Plan | Cost for this app |
+|---------|------|-------------------|
+| Firebase Auth + Firestore | Spark | $0 |
+| Supabase Storage | Free | $0 (within 1 GB) |
+| Firebase Storage | Blaze required | Needs billing account |
 
 ## Project Structure
 
 ```
 lib/
 ├── core/
-│   ├── constants/     # App and category constants
+│   ├── constants/     # App, category, Supabase config
 │   ├── errors/        # Failure classes
 │   ├── routes/        # GoRouter configuration
 │   ├── theme/         # IBM Carbon theme
@@ -83,13 +114,15 @@ lib/
 ├── data/
 │   ├── models/        # Product, User, Dashboard models
 │   ├── repositories/  # Auth, Product, Dashboard, Storage
-│   └── services/      # Firebase, Hive, Storage services
+│   └── services/      # Firebase, Supabase, Hive services
 ├── presentation/
 │   ├── blocs/         # Auth, Product, Dashboard, Form, Filter
 │   ├── screens/       # All app screens
 │   └── widgets/       # Reusable UI components
 ├── app.dart
 └── main.dart
+supabase/
+└── storage_setup.sql  # Bucket + policies for product images
 ```
 
 ## Firestore Structure
@@ -108,11 +141,14 @@ metadata/product_counter
   - count (for sequential product codes)
 ```
 
-## Storage Structure
+## Image Storage (Supabase)
 
 ```
-/products/{productId}.jpg
+Bucket: products (public read)
+Path:   {productId}.jpg
 ```
+
+Public URL is stored in Firestore as `imageUrl`.
 
 ## Screens
 

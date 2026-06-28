@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:xtacy_backoffice/data/services/storage_service.dart';
 
-/// Repository for Firebase Storage image operations.
+/// Repository for Supabase Storage image operations.
 class StorageRepository {
   StorageRepository({
     StorageService? storageService,

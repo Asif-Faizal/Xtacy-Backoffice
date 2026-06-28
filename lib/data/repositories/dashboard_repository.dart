@@ -2,17 +2,17 @@ import 'package:xtacy_backoffice/core/constants/category_constants.dart';
 import 'package:xtacy_backoffice/core/utils/date_utils.dart';
 import 'package:xtacy_backoffice/data/models/dashboard_stats.dart';
 import 'package:xtacy_backoffice/data/models/product_model.dart';
-import 'package:xtacy_backoffice/data/repositories/product_repository.dart';
+import 'package:xtacy_backoffice/data/services/firestore_service.dart';
 
 /// Repository for dashboard analytics computed from product data.
 class DashboardRepository {
-  DashboardRepository({ProductRepository? productRepository})
-      : _productRepository = productRepository ?? ProductRepository();
+  DashboardRepository({FirestoreService? firestoreService})
+      : _firestoreService = firestoreService ?? FirestoreService();
 
-  final ProductRepository _productRepository;
+  final FirestoreService _firestoreService;
 
   Future<DashboardStats> getDashboardStats() async {
-    final products = await _productRepository.getAllProducts();
+    final products = await _firestoreService.getAllProducts();
     return _computeStats(products);
   }
 

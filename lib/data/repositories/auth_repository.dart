@@ -28,12 +28,16 @@ class AuthRepository {
 
   Future<UserModel> signInWithGoogle() async {
     final user = await _authService.signInWithGoogle();
-    await _firestoreService.saveUser(
-      uid: user.uid,
-      name: user.name,
-      email: user.email,
-      photoUrl: user.photoUrl,
-    );
+    try {
+      await _firestoreService.saveUser(
+        uid: user.uid,
+        name: user.name,
+        email: user.email,
+        photoUrl: user.photoUrl,
+      );
+    } catch (_) {
+      // Sign-in already succeeded; profile sync can retry later.
+    }
     return user;
   }
 
